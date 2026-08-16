@@ -5,6 +5,9 @@ import os
 messages = []
 users = []
 
+# Получаем путь к текущей директории
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class ChatHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
@@ -12,7 +15,8 @@ class ChatHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
-                with open('index.html', 'rb') as f:
+                index_path = os.path.join(BASE_DIR, 'index.html')
+                with open(index_path, 'rb') as f:
                     self.wfile.write(f.read())
             elif self.path == '/messages':
                 self.send_response(200)
@@ -24,7 +28,7 @@ class ChatHandler(BaseHTTPRequestHandler):
                 self.send_response(404)
                 self.end_headers()
         except Exception as e:
-            pass
+            print(f"GET error: {e}")
 
     def do_POST(self):
         try:
@@ -52,13 +56,13 @@ class ChatHandler(BaseHTTPRequestHandler):
                 self.send_response(404)
                 self.end_headers()
         except Exception as e:
-            pass
+            print(f"POST error: {e}")
 
     def log_message(self, format, *args):
         pass
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 10000))
     print(f'Server started on port {port}')
     server = HTTPServer(('0.0.0.0', port), ChatHandler)
     server.serve_forever()
