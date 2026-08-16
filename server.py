@@ -2,7 +2,24 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import os
 
-messages = []
+import os
+
+HISTORY_FILE = 'history.json'
+
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_history():
+    with open(HISTORY_FILE, 'w') as f:
+        json.dump(messages, f, ensure_ascii=False)
+
+messages = load_history()
 users = []
 FAMILY_PASSWORD = "Mini2012"  # Замените на свой пароль
 
@@ -73,6 +90,7 @@ class ChatHandler(BaseHTTPRequestHandler):
             
             if self.path == '/send':
                 messages.append(data)
+                save_history()
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
