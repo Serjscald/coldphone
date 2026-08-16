@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coldphone - Защищенный чат</title>
+    <title>Coldphone</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -51,9 +51,7 @@
             font-weight: bold;
             cursor: pointer;
         }
-        
-        /* Экран чатов */
-        .chats-screen { display: none; flex-direction: column; height: 100%; }
+        .chat-screen { display: none; flex-direction: column; height: 100%; }
         .header {
             background: #007AFF;
             color: white;
@@ -61,79 +59,6 @@
             text-align: center;
             font-size: 18px;
             font-weight: bold;
-        }
-        .chats-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-        .chat-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .chat-item:hover {
-            background: #f8f9fa;
-        }
-        .chat-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #007AFF;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            margin-right: 15px;
-            flex-shrink: 0;
-        }
-        .chat-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .chat-name {
-            font-weight: bold;
-            font-size: 16px;
-        }
-        .chat-last-message {
-            font-size: 14px;
-            color: #666;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .chat-time {
-            font-size: 12px;
-            color: #999;
-            flex-shrink: 0;
-        }
-        
-        /* Экран диалога */
-        .dialog-screen { display: none; flex-direction: column; height: 100%; }
-        .dialog-header {
-            background: #007AFF;
-            color: white;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .back-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0 5px;
-        }
-        .dialog-title {
-            font-size: 18px;
-            font-weight: bold;
-            flex: 1;
         }
         .messages {
             flex: 1;
@@ -151,6 +76,7 @@
         }
         .received { background: #e9ecef; align-self: flex-start; }
         .sent { background: #007AFF; color: white; align-self: flex-end; }
+        .sender { font-size: 12px; font-weight: bold; margin-bottom: 5px; opacity: 0.7; }
         .time { font-size: 10px; opacity: 0.6; margin-top: 5px; }
         .photo-message {
             max-width: 250px;
@@ -158,21 +84,6 @@
             cursor: pointer;
             display: block;
             margin: 5px 0;
-        }
-        .video-message {
-            max-width: 250px;
-            border-radius: 10px;
-            display: block;
-            margin: 5px 0;
-        }
-        .file-message {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
-            cursor: pointer;
         }
         .input-bar {
             display: flex;
@@ -198,7 +109,6 @@
             border: none;
             cursor: pointer;
             font-size: 18px;
-            flex-shrink: 0;
         }
         .attach-btn {
             width: 36px;
@@ -209,69 +119,27 @@
             border: none;
             cursor: pointer;
             font-size: 18px;
-            flex-shrink: 0;
         }
-        .file-input {
-            display: none;
-        }
+        .file-input { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Экран входа -->
         <div id="loginScreen" class="login-screen">
-            <div class="logo">🔐</div>
+            <div class="logo">❄️</div>
             <div class="app-name">Coldphone</div>
-            <p style="color: #666;">Защищенный семейный мессенджер</p>
+            <p style="color: #666;">Семейный мессенджер</p>
             <input type="text" id="usernameInput" class="input-field" placeholder="Ваше имя" maxlength="20">
-            <input type="password" id="passwordInput" class="input-field" placeholder="Пароль для шифрования">
+            <input type="password" id="passwordInput" class="input-field" placeholder="Пароль">
             <button onclick="login()" class="btn">Войти в чат</button>
         </div>
 
-        <!-- Экран списка чатов -->
-        <div id="chatsScreen" class="chats-screen">
-            <div class="header">❄️ Coldphone 🔒</div>
-            <div id="chatsList" class="chats-list"></div>
-        </div>
-
-        <!-- Экран диалога -->
-        <div id="dialogScreen" class="dialog-screen">
-            <div class="dialog-header">
-                <button onclick="backToChats()" class="back-btn">←</button>
-                <div class="dialog-title" id="dialogTitle">Чат</div>
-            </div>
+        <div id="chatScreen" class="chat-screen">
+            <div class="header">❄️ Coldphone</div>
             <div id="messagesContainer" class="messages"></div>
-            <div id="emojiPanel" style="display: none; padding: 10px; background: #f0f0f0; flex-wrap: wrap; gap: 10px; border-top: 1px solid #ccc; position: absolute; bottom: 60px; left: 0; right: 0; z-index: 100; max-width: 500px; margin: 0 auto;">
-                <button onclick="insertEmoji('😊')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😊</button>
-                <button onclick="insertEmoji('😂')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😂</button>
-                <button onclick="insertEmoji('❤️')" style="font-size: 28px; background: none; border: none; cursor: pointer;">❤️</button>
-                <button onclick="insertEmoji('👍')" style="font-size: 28px; background: none; border: none; cursor: pointer;">👍</button>
-                <button onclick="insertEmoji('🎉')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🎉</button>
-                <button onclick="insertEmoji('😢')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😢</button>
-                <button onclick="insertEmoji('😍')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😍</button>
-                <button onclick="insertEmoji('🤔')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🤔</button>
-                <button onclick="insertEmoji('🙏')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🙏</button>
-                <button onclick="insertEmoji('💪')" style="font-size: 28px; background: none; border: none; cursor: pointer;">💪</button>
-                <button onclick="insertEmoji('🔥')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🔥</button>
-                <button onclick="insertEmoji('✨')" style="font-size: 28px; background: none; border: none; cursor: pointer;">✨</button>
-                <button onclick="insertEmoji('😘')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😘</button>
-                <button onclick="insertEmoji('🤗')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🤗</button>
-                <button onclick="insertEmoji('😎')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😎</button>
-                <button onclick="insertEmoji('🥳')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🥳</button>
-                <button onclick="insertEmoji('😴')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😴</button>
-                <button onclick="insertEmoji('🤩')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🤩</button>
-                <button onclick="insertEmoji('😇')" style="font-size: 28px; background: none; border: none; cursor: pointer;">😇</button>
-                <button onclick="insertEmoji('🤣')" style="font-size: 28px; background: none; border: none; cursor: pointer;">🤣</button>
-            </div>
             <div class="input-bar">
-                <button onclick="insertSmile()" class="attach-btn" style="background: #FF9500;">😊</button>
                 <button onclick="document.getElementById('photoInput').click()" class="attach-btn">📷</button>
-                <input type="file" id="photoInput" class="file-input" accept="image/*" onchange="sendFile('photo')">
-                
-
-                <button onclick="document.getElementById('fileInput').click()" class="attach-btn">📎</button>
-                <input type="file" id="fileInput" class="file-input" onchange="sendFile('file')">
-                
+                <input type="file" id="photoInput" class="file-input" accept="image/*" onchange="sendPhoto()">
                 <input type="text" id="messageInput" class="message-input" placeholder="Сообщение...">
                 <button onclick="sendMessage()" class="send-btn">➤</button>
             </div>
@@ -282,41 +150,6 @@
         let username = '';
         let password = '';
         let pollingInterval = null;
-        let currentChat = null;
-
-        function simpleEncrypt(text, key) {
-            const encoder = new TextEncoder();
-            const textBytes = encoder.encode(text);
-            const keyBytes = encoder.encode(key);
-            const encrypted = new Uint8Array(textBytes.length);
-            for (let i = 0; i < textBytes.length; i++) {
-                encrypted[i] = textBytes[i] ^ keyBytes[i % keyBytes.length];
-            }
-            let binary = '';
-            for (let i = 0; i < encrypted.length; i++) {
-                binary += String.fromCharCode(encrypted[i]);
-            }
-            return btoa(binary);
-        }
-
-        function simpleDecrypt(encryptedText, key) {
-            try {
-                const binary = atob(encryptedText);
-                const encrypted = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) {
-                    encrypted[i] = binary.charCodeAt(i);
-                }
-                const encoder = new TextEncoder();
-                const keyBytes = encoder.encode(key);
-                const decrypted = new Uint8Array(encrypted.length);
-                for (let i = 0; i < encrypted.length; i++) {
-                    decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
-                }
-                return new TextDecoder().decode(decrypted);
-            } catch (error) {
-                return '⚠️';
-            }
-        }
 
         function login() {
             username = document.getElementById('usernameInput').value.trim();
@@ -328,7 +161,7 @@
             }
             
             if (!password || password.length < 4) {
-                alert('Введите пароль (минимум 4 символа)');
+                alert('Введите пароль');
                 return;
             }
 
@@ -336,73 +169,49 @@
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: username, password: password})
-            }).then(response => response.json()).then(data => {
+            })
+            .then(response => response.json())
+            .then(data => {
                 if (data.status === 'error') {
                     alert(data.message);
                     return;
                 }
                 
                 document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('chatsScreen').style.display = 'flex';
+                document.getElementById('chatScreen').style.display = 'flex';
                 
                 if (pollingInterval) clearInterval(pollingInterval);
                 pollingInterval = setInterval(checkMessages, 1000);
                 checkMessages();
+            })
+            .catch(error => {
+                alert('Ошибка: ' + error);
             });
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('chatsScreen').style.display = 'flex';
-                
-                if (pollingInterval) clearInterval(pollingInterval);
-                pollingInterval = setInterval(checkMessages, 1000);
-                checkMessages();
-            });
-        }
-
-        function backToChats() {
-            currentChat = null;
-            document.getElementById('dialogScreen').style.display = 'none';
-            document.getElementById('chatsScreen').style.display = 'flex';
-            updateChatsList();
-        }
-
-        function openChat(otherUser) {
-            currentChat = otherUser;
-            document.getElementById('chatsScreen').style.display = 'none';
-            document.getElementById('dialogScreen').style.display = 'flex';
-            document.getElementById('dialogTitle').textContent = '💬 ' + otherUser;
-            displayDialogMessages();
         }
 
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text || !currentChat) return;
+            if (!text) return;
 
-            const encryptedText = simpleEncrypt(text, password);
-            
             fetch('/send', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     sender: username,
-                    recipient: currentChat,
                     type: 'text',
-                    text: encryptedText,
+                    text: text,
                     timestamp: Date.now()
                 })
-            }).then(() => {
+            })
+            .then(() => {
                 input.value = '';
                 checkMessages();
             });
         }
 
-        function sendFile(fileType) {
-            if (!currentChat) return;
-            
-            let fileInput;
-            if (fileType === 'photo') fileInput = document.getElementById('photoInput');
-            else fileInput = document.getElementById('fileInput');
-            
+        function sendPhoto() {
+            const fileInput = document.getElementById('photoInput');
             const file = fileInput.files[0];
             if (!file) return;
             
@@ -415,13 +224,12 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         sender: username,
-                        recipient: currentChat,
-                        type: fileType,
-                        fileName: file.name,
+                        type: 'photo',
                         data: base64Data,
                         timestamp: Date.now()
                     })
-                }).then(() => {
+                })
+                .then(() => {
                     checkMessages();
                 });
             };
@@ -434,102 +242,15 @@
             fetch('/messages')
                 .then(response => response.json())
                 .then(data => {
-                    window.allMessages = data.messages;
-                    window.allUsers = data.users;
-                    updateChatsList();
-                    if (currentChat) displayDialogMessages();
+                    displayMessages(data.messages);
                 });
         }
 
-        function updateChatsList() {
-            const container = document.getElementById('chatsList');
-            container.innerHTML = '';
-            
-            const users = window.allUsers || [];
-            const messages = window.allMessages || [];
-            
-            // Получаем уникальных собеседников
-            const chatPartners = new Set();
-            messages.forEach(msg => {
-                if (msg.sender === username && msg.recipient) {
-                    chatPartners.add(msg.recipient);
-                }
-                if (msg.recipient === username && msg.sender) {
-                    chatPartners.add(msg.sender);
-                }
-                if (!msg.recipient && msg.sender !== username) {
-                    chatPartners.add(msg.sender);
-                }
-            });
-            
-            // Добавляем всех онлайн пользователей кроме себя
-            users.forEach(user => {
-                if (user !== username) {
-                    chatPartners.add(user);
-                }
-            });
-            
-            // Создаем список чатов
-            chatPartners.forEach(partner => {
-                const div = document.createElement('div');
-                div.className = 'chat-item';
-                div.onclick = () => openChat(partner);
-                
-                // Находим последнее сообщение
-                const lastMsg = messages.filter(msg => 
-                    (msg.sender === username && msg.recipient === partner) ||
-                    (msg.sender === partner && msg.recipient === username) ||
-                    (msg.sender === partner && !msg.recipient)
-                ).pop();
-                
-                let lastText = 'Нет сообщений';
-                let lastTime = '';
-                
-                if (lastMsg) {
-                    if (lastMsg.type === 'text') {
-                        lastText = simpleDecrypt(lastMsg.text, password);
-                    } else if (lastMsg.type === 'photo') {
-                        lastText = '📷 Фото';
-                    } else if (lastMsg.type === 'video') {
-                        lastText = '🎬 Видео';
-                    } else if (lastMsg.type === 'file') {
-                        lastText = '📎 ' + lastMsg.fileName;
-                    }
-                    
-                    lastTime = new Date(lastMsg.timestamp).toLocaleTimeString('ru-RU', {
-                        hour: '2-digit', minute: '2-digit'
-                    });
-                }
-                
-                div.innerHTML = 
-                    '<div class="chat-avatar">' + partner.charAt(0).toUpperCase() + '</div>' +
-                    '<div class="chat-info">' +
-                        '<div class="chat-name">' + partner + '</div>' +
-                        '<div class="chat-last-message">' + lastText + '</div>' +
-                    '</div>' +
-                    '<div class="chat-time">' + lastTime + '</div>';
-                
-                container.appendChild(div);
-            });
-            
-            if (chatPartners.size === 0) {
-                container.innerHTML = '<div style="text-align: center; color: #999; padding: 40px;">Нет собеседников онлайн</div>';
-            }
-        }
-
-        function displayDialogMessages() {
+        function displayMessages(messages) {
             const container = document.getElementById('messagesContainer');
             container.innerHTML = '';
             
-            const messages = window.allMessages || [];
-            
-            const dialogMessages = messages.filter(msg => 
-                (msg.sender === username && msg.recipient === currentChat) ||
-                (msg.sender === currentChat && msg.recipient === username) ||
-                (msg.sender === currentChat && !msg.recipient && msg.sender !== username)
-            );
-            
-            dialogMessages.forEach(msg => {
+            for (const msg of messages) {
                 const div = document.createElement('div');
                 div.className = 'message ' + (msg.sender === username ? 'sent' : 'received');
                 
@@ -541,25 +262,18 @@
                 
                 if (msg.type === 'photo') {
                     contentHTML = '<img src="data:image/jpeg;base64,' + msg.data + '" class="photo-message">';
-                } else if (msg.type === 'file') {
-                    contentHTML = '<div class="file-message" onclick="downloadFile(\'' + msg.fileName + '\', \'' + msg.data + '\')">📄 ' + msg.fileName + '</div>';
                 } else {
-                    const decryptedText = simpleDecrypt(msg.text, password);
-                    contentHTML = '<div>' + decryptedText + '</div>';
+                    contentHTML = '<div>' + msg.text + '</div>';
                 }
                 
-                div.innerHTML = contentHTML + '<div class="time">' + time + ' 🔒</div>';
+                div.innerHTML = (msg.sender !== username ? '<div class="sender">' + msg.sender + '</div>' : '') +
+                    contentHTML +
+                    '<div class="time">' + time + '</div>';
+                
                 container.appendChild(div);
-            });
+            }
             
             container.scrollTop = container.scrollHeight;
-        }
-
-        function downloadFile(fileName, base64Data) {
-            const link = document.createElement('a');
-            link.href = 'data:application/octet-stream;base64,' + base64Data;
-            link.download = fileName;
-            link.click();
         }
 
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
