@@ -19,6 +19,32 @@ class ChatHandler(BaseHTTPRequestHandler):
                 index_path = os.path.join(BASE_DIR, 'index.html')
                 with open(index_path, 'rb') as f:
                     self.wfile.write(f.read())
+            elif self.path == '/icon.png' or self.path == '/icon-180.png' or self.path == '/icon-192.png' or self.path == '/icon-512.png':
+                self.send_response(200)
+                self.send_header('Content-type', 'image/png')
+                self.end_headers()
+                icon_file = self.path.lstrip('/')
+                with open(icon_file, 'rb') as f:
+                    self.wfile.write(f.read())
+            elif self.path == '/manifest.json':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                with open('manifest.json', 'rb') as f:
+                    self.wfile.write(f.read())
+            elif self.path == '/icon.png' or self.path == '/icon-180.png' or self.path == '/icon-192.png' or self.path == '/icon-512.png':
+                self.send_response(200)
+                self.send_header('Content-type', 'image/png')
+                self.end_headers()
+                icon_file = self.path.lstrip('/')
+                with open(icon_file, 'rb') as f:
+                    self.wfile.write(f.read())
+            elif self.path == '/manifest.json':
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                with open('manifest.json', 'rb') as f:
+                    self.wfile.write(f.read())
             elif self.path == '/messages':
                 # Получаем имя пользователя из заголовка
                 username = self.headers.get('X-Username', '')
