@@ -4,6 +4,7 @@ import os
 
 messages = []
 users = []
+FAMILY_PASSWORD = "family2024"  # Замените на свой пароль
 
 # Получаем путь к текущей директории
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -45,12 +46,20 @@ class ChatHandler(BaseHTTPRequestHandler):
             
             elif self.path == '/join':
                 username = data.get('username')
-                if username and username not in users:
-                    users.append(username)
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'status': 'ok'}).encode('utf-8'))
+                password = data.get('password', '')
+                
+                if password == FAMILY_PASSWORD:
+                    if username and username not in users:
+                        users.append(username)
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'ok'}).encode('utf-8'))
+                else:
+                    self.send_response(403)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'error', 'message': 'Неверный пароль'}).encode('utf-8'))
             
             else:
                 self.send_response(404)
