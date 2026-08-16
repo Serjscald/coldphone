@@ -134,8 +134,16 @@
             <button onclick="login()" class="btn">Войти в чат</button>
         </div>
 
-        <div id="chatScreen" class="chat-screen">
+        <div id="chatsScreen" class="chat-screen">
             <div class="header">❄️ Coldphone</div>
+            <div id="chatsList" style="flex:1; overflow-y:auto;"></div>
+        </div>
+
+        <div id="dialogScreen" class="chat-screen">
+            <div class="header">
+                <button onclick="backToChats()" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;">←</button>
+                <span id="dialogTitle">Чат</span>
+            </div>
             <div id="messagesContainer" class="messages"></div>
             <div class="input-bar">
                 <button onclick="document.getElementById('photoInput').click()" class="attach-btn">📷</button>
@@ -150,6 +158,9 @@
         let username = '';
         let password = '';
         let pollingInterval = null;
+        let currentChat = null;
+        let allMessages = [];
+        let allUsers = [];
 
         function login() {
             username = document.getElementById('usernameInput').value.trim();
@@ -178,7 +189,7 @@
                 }
                 
                 document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('chatScreen').style.display = 'flex';
+                document.getElementById('chatsScreen').style.display = 'flex';
                 
                 if (pollingInterval) clearInterval(pollingInterval);
                 pollingInterval = setInterval(checkMessages, 1000);
@@ -199,6 +210,7 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     sender: username,
+                    recipient: currentChat,
                     type: 'text',
                     text: text,
                     timestamp: Date.now()
@@ -224,6 +236,7 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         sender: username,
+                        recipient: currentChat,
                         type: 'photo',
                         data: base64Data,
                         timestamp: Date.now()
@@ -242,15 +255,90 @@
             fetch('/messages')
                 .then(response => response.json())
                 .then(data => {
-                    displayMessages(data.messages);
+                    allMessages = data.messages;
+                    allUsers = data.users || [];
+                    updateChatsList();
+                    if (currentChat) displayDialogMessages();
                 });
         }
 
-        function displayMessages(messages) {
+        function updateChatsList() {
+            const container = document.getElementById('chatsList');
+            container.innerHTML = '';
+            
+            const chatPartners = new Set();
+            
+            allMessages.forEach(msg => {
+                if (msg.sender === username && msg.recipient) {
+                    chatPartners.add(msg.recipient);
+                }
+                if (msg.recipient === username && msg.sender) {
+                    chatPartners.add(msg.sender);
+                }
+            });
+            
+            allUsers.forEach(user => {
+                if (user !== username) {
+                    chatPartners.add(user);
+                }
+            });
+            
+            chatPartners.forEach(partner => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display:flex;align-items:center;padding:15px;border-bottom:1px solid #f0f0f0;cursor:pointer;';
+                div.onclick = () => openChat(partner);
+                
+                const lastMsg = allMessages.filter(msg => 
+                    (msg.sender === username && msg.recipient === partner) ||
+                    (msg.sender === partner && msg.recipient === username)
+                ).pop();
+                
+                let lastText = 'Нет сообщений';
+                if (lastMsg) {
+                    if (lastMsg.type === 'photo') lastText = '📷 Фото';
+                    else lastText = lastMsg.text;
+                }
+                
+                div.innerHTML = 
+                    '<div style="width:50px;height:50px;border-radius:50%;background:#007AFF;color:white;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;margin-right:15px;">' + partner.charAt(0).toUpperCase() + '</div>' +
+                    '<div style="flex:1;">' +
+                        '<div style="font-weight:bold;">' + partner + '</div>' +
+                        '<div style="color:#666;font-size:14px;">' + lastText + '</div>' +
+                    '</div>';
+                
+                container.appendChild(div);
+            });
+            
+            if (chatPartners.size === 0) {
+                container.innerHTML = '<div style="text-align:center;color:#999;padding:40px;">Нет собеседников</div>';
+            }
+        }
+
+        function openChat(partner) {
+            currentChat = partner;
+            document.getElementById('chatsScreen').style.display = 'none';
+            document.getElementById('dialogScreen').style.display = 'flex';
+            document.getElementById('dialogTitle').textContent = partner;
+            displayDialogMessages();
+        }
+
+        function backToChats() {
+            currentChat = null;
+            document.getElementById('dialogScreen').style.display = 'none';
+            document.getElementById('chatsScreen').style.display = 'flex';
+            updateChatsList();
+        }
+
+        function displayDialogMessages() {
             const container = document.getElementById('messagesContainer');
             container.innerHTML = '';
             
-            for (const msg of messages) {
+            const dialogMessages = allMessages.filter(msg => 
+                (msg.sender === username && msg.recipient === currentChat) ||
+                (msg.sender === currentChat && msg.recipient === username)
+            );
+            
+            dialogMessages.forEach(msg => {
                 const div = document.createElement('div');
                 div.className = 'message ' + (msg.sender === username ? 'sent' : 'received');
                 
@@ -259,22 +347,20 @@
                 });
                 
                 let contentHTML = '';
-                
                 if (msg.type === 'photo') {
                     contentHTML = '<img src="data:image/jpeg;base64,' + msg.data + '" class="photo-message">';
                 } else {
                     contentHTML = '<div>' + msg.text + '</div>';
                 }
                 
-                div.innerHTML = (msg.sender !== username ? '<div class="sender">' + msg.sender + '</div>' : '') +
-                    contentHTML +
-                    '<div class="time">' + time + '</div>';
-                
+                div.innerHTML = contentHTML + '<div class="time">' + time + '</div>';
                 container.appendChild(div);
-            }
+            });
             
             container.scrollTop = container.scrollHeight;
         }
+
+
 
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
