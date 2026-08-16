@@ -20,10 +20,18 @@ class ChatHandler(BaseHTTPRequestHandler):
                 with open(index_path, 'rb') as f:
                     self.wfile.write(f.read())
             elif self.path == '/messages':
+                # Получаем имя пользователя из заголовка
+                username = self.headers.get('X-Username', '')
+                
+                # Фильтруем сообщения - только где пользователь участник
+                filtered = [msg for msg in messages if 
+                    msg.get('sender') == username or 
+                    msg.get('recipient') == username]
+                
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
-                response = json.dumps({'messages': messages, 'users': users})
+                response = json.dumps({'messages': filtered, 'users': users})
                 self.wfile.write(response.encode('utf-8'))
             else:
                 self.send_response(404)

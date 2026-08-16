@@ -252,7 +252,9 @@
         }
 
         function checkMessages() {
-            fetch('/messages')
+            fetch('/messages', {
+                headers: {'X-Username': username}
+            })
                 .then(response => response.json())
                 .then(data => {
                     allMessages = data.messages;
