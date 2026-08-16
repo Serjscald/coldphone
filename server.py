@@ -4,7 +4,7 @@ import os
 
 messages = []
 users = []
-FAMILY_PASSWORD = "family2024"  # Замените на свой пароль
+FAMILY_PASSWORD = "Mini2012"  # Замените на свой пароль
 
 # Получаем путь к текущей директории
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
