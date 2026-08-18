@@ -395,16 +395,19 @@
         }
 
         function savePhoto(src) {
-            // Если src - это data URL
-            const base64Data = src.split(',')[1];
-            
-            // Создаем ссылку для скачивания
-            const link = document.createElement('a');
-            link.href = src;
-            link.download = 'photo_' + Date.now() + '.jpg';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Для iPhone/iPad - открываем фото в новой вкладке
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                window.open(src, '_blank');
+                alert('Нажмите и удерживайте фото, затем выберите "Сохранить в Фото"');
+            } else {
+                // Для Mac и других устройств
+                const link = document.createElement('a');
+                link.href = src;
+                link.download = 'photo_' + Date.now() + '.jpg';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         }
 
         function backToChats() {
