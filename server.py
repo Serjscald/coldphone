@@ -41,7 +41,7 @@ if os.path.exists(USERS_FILE):
 else:
     users = []
 FAMILY_PASSWORD = "Mini2012"
-ADMIN_USER = "Серж"
+ADMIN_USER = "Serzh"
 
 class ChatHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -68,6 +68,11 @@ class ChatHandler(BaseHTTPRequestHandler):
                     self.wfile.write(f.read())
             elif self.path == '/messages':
                 username = self.headers.get('X-Username', '')
+                # Декодируем кириллицу
+                try:
+                    username = urllib.parse.unquote(username)
+                except:
+                    pass
                 filtered = [msg for msg in messages if 
                     msg.get('sender') == username or 
                     msg.get('recipient') == username]
