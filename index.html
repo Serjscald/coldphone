@@ -395,18 +395,12 @@
         }
 
         function savePhoto(src) {
-            // Для iPhone/iPad - открываем фото в новой вкладке
             if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                // Для iPhone/iPad - открываем в новой вкладке
                 window.open(src, '_blank');
-                alert('Нажмите и удерживайте фото, затем выберите "Сохранить в Фото"');
             } else {
-                // Для Mac и других устройств
-                const link = document.createElement('a');
-                link.href = src;
-                link.download = 'photo_' + Date.now() + '.jpg';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                // Для Mac - тоже открываем в новой вкладке
+                window.open(src, '_blank');
             }
         }
 
