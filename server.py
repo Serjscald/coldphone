@@ -41,6 +41,7 @@ if os.path.exists(USERS_FILE):
 else:
     users = []
 FAMILY_PASSWORD = "Mini2012"
+ADMIN_USER = "Серж"
 
 class ChatHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -95,6 +96,48 @@ class ChatHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'ok'}).encode('utf-8'))
+            
+            elif self.path == '/delete':
+                username = data.get('username', '')
+                message_index = data.get('index', -1)
+                
+                if username == ADMIN_USER:
+                    if 0 <= message_index < len(messages):
+                        deleted = messages.pop(message_index)
+                        save_history()
+                        self.send_response(200)
+                        self.send_header('Content-type', 'application/json')
+                        self.end_headers()
+                        self.wfile.write(json.dumps({'status': 'ok'}).encode('utf-8'))
+                    else:
+                        self.send_response(404)
+                        self.end_headers()
+                else:
+                    self.send_response(403)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'error', 'message': 'Нет прав'}).encode('utf-8'))
+            
+            elif self.path == '/clear_chat':
+                username = data.get('username', '')
+                other_user = data.get('other_user', '')
+                
+                if username == ADMIN_USER:
+                    # Удаляем все сообщения между двумя пользователями
+                    before = len(messages)
+                    messages[:] = [msg for msg in messages if not (
+                        (msg.get('sender') == username and msg.get('recipient') == other_user) or
+                        (msg.get('sender') == other_user and msg.get('recipient') == username)
+                    )]
+                    after = len(messages)
+                    save_history()
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'ok', 'deleted': before - after}).encode('utf-8'))
+                else:
+                    self.send_response(403)
+                    self.end_headers()
             
             elif self.path == '/join':
                 username = data.get('username')
