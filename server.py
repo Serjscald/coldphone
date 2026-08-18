@@ -29,6 +29,17 @@ def save_history():
         pass
 
 messages = load_history()
+
+# Загружаем список пользователей
+USERS_FILE = 'users.json'
+if os.path.exists(USERS_FILE):
+    try:
+        with open(USERS_FILE, 'r') as f:
+            users = json.load(f)
+    except:
+        users = []
+else:
+    users = []
 FAMILY_PASSWORD = "Mini2012"
 
 class ChatHandler(BaseHTTPRequestHandler):
@@ -92,6 +103,8 @@ class ChatHandler(BaseHTTPRequestHandler):
                 if password == FAMILY_PASSWORD:
                     if username and username not in users:
                         users.append(username)
+                        with open(USERS_FILE, 'w') as f:
+                            json.dump(users, f, ensure_ascii=False)
                     self.send_response(200)
                     self.send_header('Content-type', 'application/json')
                     self.end_headers()
