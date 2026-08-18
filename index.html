@@ -394,6 +394,19 @@
             }
         }
 
+        function savePhoto(src) {
+            // Если src - это data URL
+            const base64Data = src.split(',')[1];
+            
+            // Создаем ссылку для скачивания
+            const link = document.createElement('a');
+            link.href = src;
+            link.download = 'photo_' + Date.now() + '.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function backToChats() {
             currentChat = null;
             document.getElementById('dialogScreen').style.display = 'none';
@@ -420,7 +433,8 @@
                 
                 let contentHTML = '';
                 if (msg.type === 'photo') {
-                    contentHTML = '<img src="data:image/jpeg;base64,' + msg.data + '" class="photo-message">';
+                    contentHTML = '<img src="data:image/jpeg;base64,' + msg.data + '" class="photo-message" onclick="savePhoto(this.src)">' +
+                                 '<div style="margin-top:5px;"><button onclick="savePhoto(this)" style="font-size:12px;padding:5px 10px;border:none;border-radius:5px;cursor:pointer;background:rgba(255,255,255,0.2);color:inherit;">💾 Сохранить</button></div>';
                 } else {
                     contentHTML = '<div>' + msg.text + '</div>';
                 }
