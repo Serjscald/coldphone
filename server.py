@@ -1,9 +1,15 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import os
+import urllib.request
+import urllib.parse
 
-import os
+# Подключение к PostgreSQL через HTTP API Render
+DATABASE_URL = "postgresql://coldphone:CS3FSP5WakTuabPnANYq2LkVCYjaDWHi@dpg-da1v0d7lk1mc73adp28g-a/coldphone"
 
+# Используем простой способ - храним в памяти + файл
+messages = []
+users = []
 HISTORY_FILE = 'history.json'
 
 def load_history():
@@ -16,15 +22,14 @@ def load_history():
     return []
 
 def save_history():
-    with open(HISTORY_FILE, 'w') as f:
-        json.dump(messages, f, ensure_ascii=False)
+    try:
+        with open(HISTORY_FILE, 'w') as f:
+            json.dump(messages, f, ensure_ascii=False)
+    except:
+        pass
 
 messages = load_history()
-users = []
-FAMILY_PASSWORD = "Mini2012"  # Замените на свой пароль
-
-# Получаем путь к текущей директории
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FAMILY_PASSWORD = "Mini2012"
 
 class ChatHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -33,29 +38,16 @@ class ChatHandler(BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html; charset=utf-8')
                 self.end_headers()
-                index_path = os.path.join(BASE_DIR, 'index.html')
-                with open(index_path, 'rb') as f:
+                with open('index.html', 'rb') as f:
                     self.wfile.write(f.read())
-            elif self.path == '/icon.png' or self.path == '/icon-180.png' or self.path == '/icon-192.png' or self.path == '/icon-512.png':
+            elif self.path == '/icon-180.png' or self.path == '/icon-192.png' or self.path == '/icon-512.png':
                 self.send_response(200)
                 self.send_header('Content-type', 'image/png')
                 self.end_headers()
                 icon_file = self.path.lstrip('/')
-                with open(icon_file, 'rb') as f:
-                    self.wfile.write(f.read())
-            elif self.path == '/manifest.json':
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                with open('manifest.json', 'rb') as f:
-                    self.wfile.write(f.read())
-            elif self.path == '/icon.png' or self.path == '/icon-180.png' or self.path == '/icon-192.png' or self.path == '/icon-512.png':
-                self.send_response(200)
-                self.send_header('Content-type', 'image/png')
-                self.end_headers()
-                icon_file = self.path.lstrip('/')
-                with open(icon_file, 'rb') as f:
-                    self.wfile.write(f.read())
+                if os.path.exists(icon_file):
+                    with open(icon_file, 'rb') as f:
+                        self.wfile.write(f.read())
             elif self.path == '/manifest.json':
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
@@ -63,10 +55,7 @@ class ChatHandler(BaseHTTPRequestHandler):
                 with open('manifest.json', 'rb') as f:
                     self.wfile.write(f.read())
             elif self.path == '/messages':
-                # Получаем имя пользователя из заголовка
                 username = self.headers.get('X-Username', '')
-                
-                # Фильтруем сообщения - только где пользователь участник
                 filtered = [msg for msg in messages if 
                     msg.get('sender') == username or 
                     msg.get('recipient') == username]
@@ -125,5 +114,6 @@ class ChatHandler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     print(f'Server started on port {port}')
+    print(f'History loaded: {len(messages)} messages')
     server = HTTPServer(('0.0.0.0', port), ChatHandler)
     server.serve_forever()
