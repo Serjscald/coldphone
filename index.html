@@ -151,6 +151,8 @@
             <div class="header">
                 <button onclick="backToChats()" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;">←</button>
                 <span id="dialogTitle">Чат</span>
+                <button onclick="deleteMessage()" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;">🗑</button>
+                <button onclick="clearChat()" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;">🧹</button>
             </div>
             <div id="messagesContainer" class="messages"></div>
             <div class="input-bar">
@@ -330,6 +332,66 @@
             document.getElementById('dialogScreen').style.display = 'flex';
             document.getElementById('dialogTitle').textContent = partner;
             displayDialogMessages();
+        }
+
+        function deleteMessage() {
+            if (!currentChat) return;
+            
+            const chatMessages = allMessages.filter(msg => 
+                (msg.sender === username && msg.recipient === currentChat) ||
+                (msg.sender === currentChat && msg.recipient === username)
+            );
+            
+            if (chatMessages.length === 0) {
+                alert('Нет сообщений');
+                return;
+            }
+            
+            const lastMsg = chatMessages[chatMessages.length - 1];
+            const globalIndex = allMessages.indexOf(lastMsg);
+            
+            if (confirm('Удалить последнее сообщение?')) {
+                fetch('/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: username,
+                        index: globalIndex
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        checkMessages();
+                    } else {
+                        alert(data.message || 'Нет прав');
+                    }
+                });
+            }
+        }
+
+        function clearChat() {
+            if (!currentChat) return;
+            
+            if (confirm('Очистить весь чат с ' + currentChat + '?')) {
+                fetch('/clear_chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: username,
+                        other_user: currentChat
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        alert('Удалено: ' + data.deleted);
+                        checkMessages();
+                    } else {
+                        alert('Нет прав');
+                    }
+                });
+            }
         }
 
         function backToChats() {
