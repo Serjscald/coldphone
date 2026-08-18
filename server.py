@@ -41,7 +41,7 @@ if os.path.exists(USERS_FILE):
 else:
     users = []
 FAMILY_PASSWORD = "Mini2012"
-ADMIN_USER = "Serzh"
+ADMIN_USER = "Serj"
 
 class ChatHandler(BaseHTTPRequestHandler):
     def do_GET(self):
