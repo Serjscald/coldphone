@@ -40,7 +40,18 @@ if os.path.exists(USERS_FILE):
         users = []
 else:
     users = []
-FAMILY_PASSWORD = "Mini2012"
+ROOMS = {
+    "Mini2012": "Mini2012",
+    "Pobeda": "Pobeda"
+}
+# Определяем комнату по паролю сессии
+def get_room_by_session(session_password):
+    if session_password == "Mini2012":
+        return "Mini2012"
+    elif session_password == "Pobeda":
+        return "Pobeda"
+    return None
+ADMIN_USER = "Serj"
 ADMIN_USER = "Serj"
 
 class ChatHandler(BaseHTTPRequestHandler):

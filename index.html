@@ -138,7 +138,8 @@
             <div class="app-name">Coldphone</div>
             <p style="color: #666;">Семейный мессенджер</p>
             <input type="text" id="usernameInput" class="input-field" placeholder="Ваше имя" maxlength="20">
-            <input type="password" id="passwordInput" class="input-field" placeholder="Пароль">
+            <input type="password" id="sessionPasswordInput" class="input-field" placeholder="Пароль сессии">
+            <input type="password" id="passwordInput" class="input-field" placeholder="Личный пароль">
             <button onclick="login()" class="btn">Войти в чат</button>
         </div>
 
@@ -169,11 +170,13 @@
         let password = '';
         let pollingInterval = null;
         let currentChat = null;
+        let room = '';
         let allMessages = [];
         let allUsers = [];
 
         function login() {
             username = document.getElementById('usernameInput').value.trim();
+            sessionPassword = document.getElementById('sessionPasswordInput').value;
             password = document.getElementById('passwordInput').value;
             
             if (!username) {
@@ -181,15 +184,24 @@
                 return;
             }
             
-            if (!password || password.length < 4) {
-                alert('Введите пароль');
+            if (!sessionPassword) {
+                alert('Введите пароль сессии');
+                return;
+            }
+            
+            if (!password) {
+                alert('Введите личный пароль');
                 return;
             }
 
             fetch('/join', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: username, password: password})
+                body: JSON.stringify({
+                    username: username, 
+                    session_password: sessionPassword,
+                    personal_password: password
+                })
             })
             .then(response => response.json())
             .then(data => {
@@ -221,6 +233,7 @@
                 body: JSON.stringify({
                     sender: username,
                     recipient: currentChat,
+                    room: room,
                     type: 'text',
                     text: text,
                     timestamp: Date.now()
@@ -263,7 +276,7 @@
 
         function checkMessages() {
             fetch('/messages', {
-                headers: {'X-Username': username}
+                headers: {'X-Username': username, 'X-Room': room}
             })
                 .then(response => response.json())
                 .then(data => {
