@@ -168,6 +168,7 @@
     <script>
         let username = '';
         let password = '';
+        let room = '';
         let pollingInterval = null;
         let currentChat = null;
         let room = '';
@@ -175,9 +176,13 @@
         let allUsers = [];
 
         function login() {
-            username = document.getElementById('usernameInput').value.trim();
-            sessionPassword = document.getElementById('sessionPasswordInput').value;
-            password = document.getElementById('passwordInput').value;
+            let username = document.getElementById('usernameInput').value.trim();
+            let sessionPassword = document.getElementById('sessionPasswordInput').value;
+            let password = document.getElementById('passwordInput').value;
+            
+            // Сохраняем в глобальные переменные
+            window.username = username;
+            window.password = password;
             
             if (!username) {
                 alert('Введите ваше имя');
